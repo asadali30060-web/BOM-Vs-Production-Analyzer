@@ -55,7 +55,18 @@ test('session uploads clear on sign-out and restart; credentials and completed o
     assert.equal(response.status, status, JSON.stringify(data));
     return { data, cookie: response.headers.get('set-cookie')?.split(';')[0] };
   }
-  for (const route of ['/', '/js/app.js', '/css/style.css']) assert.equal((await fetch(base + route)).status, 200);
+  const home = await fetch(base + '/');
+  assert.equal(home.status, 200);
+  const html = await home.text();
+  // Follow the actual HTML links: stale paths caused the blank-page regression.
+  const assets = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(match => match[1]);
+  assert.ok(assets.some(asset => asset.endsWith('.js')));
+  assert.ok(assets.some(asset => asset.endsWith('.css')));
+  for (const asset of assets) {
+    const response = await fetch(new URL(asset, base));
+    assert.equal(response.status, 200, `Broken page asset: ${asset}`);
+    assert.ok(response.headers.get('content-type').includes(asset.endsWith('.js') ? 'javascript' : 'css'));
+  }
   for (const route of ['boms', 'reports', 'analysis-reports']) await request(route, { status: 401 });
   const credentials = { username: 'admin', password: 'Example-password-123' };
   const setup = { adminPassword: credentials.password, secondaryPassword: 'Viewer-password-456' };
