@@ -1,0 +1,14 @@
+# Local accounts, runtime files, logs, and dependencies
+data/
+node_modules/
+*.log
+
+# Company BOMs and production workbooks must never be committed.
+assets/boms/
+*.[xX][lL][sS]
+*.[xX][lL][sS][xX]
+*.[xX][lL][sS][mM]
+*.[xX][lL][sS][bB]
+
+# Downloaded output reports should stay local too.
+Gatronova-analysis-report*.html
